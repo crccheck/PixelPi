@@ -172,18 +172,44 @@ class BaseStrip(object):
     num_leds = 0
     refresh_rate = 500  # milliseconds
     spidev = None
+    gamma = None  # gamma correction table
 
     def __init__(self, num_leds, spi_dev_name='/dev/spidev0.0', **kwargs):
         self.num_leds = num_leds
         self.spidev = file(spi_dev_name, 'wb')
         if 'refresh_rate' in kwargs:
             self.refresh_rate = kwargs['refresh_rate']
+        self.gamma = self.calculate_gamma()
 
     def write_stream(self, pixels):
         self.spidev.write(pixels)
 
+    def filter_pixel(self, input_pixel, brightness=1):
+        """
+        Apply Gamma Correction and RGB / GRB reordering.
+
+        Optionally perform brightness adjustment (0 - 1)
+        """
+        output_pixel = bytearray(PIXEL_SIZE)
+
+        input_pixel[0] = int(brightness * input_pixel[0])
+        input_pixel[1] = int(brightness * input_pixel[1])
+        input_pixel[2] = int(brightness * input_pixel[2])
+
+        output_pixel[0] = self.gamma[input_pixel[0]]
+        output_pixel[1] = self.gamma[input_pixel[1]]
+        output_pixel[2] = self.gamma[input_pixel[2]]
+        return output_pixel
+
 
 class LPD6803(BaseStrip):
+    def calculate_gamma(self):
+        #LPD6803 has 5 bit color, this seems to work but is not exact.
+        gamma = []
+        for i in range(256):
+            gamma[i] = int(pow(float(i) / 255.0, 2.0) * 255.0 + 0.5)
+        return gamma
+
     def write_stream(self, pixels):
         pixel_out_bytes = bytearray(2)
         self.spidev.write(bytearray(b'\x00\x00'))
@@ -203,21 +229,75 @@ class LPD6803(BaseStrip):
 
 
 class LPD8806(BaseStrip):
+    def calculate_gamma(self):
+        """LPD8806-specific conversion (7-bit color w/high bit set)."""
+        gamma = []
+        for i in range(256):
+            gamma[i] = 0x80 | int(pow(float(i) / 255.0, 2.5) * 127.0 + 0.5)
+        return gamma
+
     def write_stream(self, pixels):
         self.spidev.write(pixels)
         self.spidev.write(bytearray(b'\x00\x00\x00'))  # zero fill the last to prevent stray colors at the end
         self.spidev.write(bytearray(b'\x00'))
 
+    def filter_pixel(self, input_pixel, brightness=1):
+        output_pixel = bytearray(PIXEL_SIZE)
+
+        input_pixel[0] = int(brightness * input_pixel[0])
+        input_pixel[1] = int(brightness * input_pixel[1])
+        input_pixel[2] = int(brightness * input_pixel[2])
+
+        # Convert RGB into GRB bytearray list.
+
+        # Some LPD8806 strips use this ordering:
+        # output_pixel[0] = self.gamma[input_pixel[1]]
+        # output_pixel[1] = self.gamma[input_pixel[0]]
+        # output_pixel[2] = self.gamma[input_pixel[2]]
+
+        # While some others use this one:
+        output_pixel[0] = self.gamma[input_pixel[2]]
+        output_pixel[1] = self.gamma[input_pixel[0]]
+        output_pixel[2] = self.gamma[input_pixel[1]]
+        return output_pixel
+
 
 class SM16716(BaseStrip):
+    def calculate_gamma(self):
+        """LPD8806-specific conversion (7-bit color w/high bit set)."""
+        gamma = []
+        for i in range(256):
+            gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
+        return gamma
+
     def write_stream(self, pixels):
         #Each frame for SM17616 starts with 50bits set to '0'
         #Also every pixel needs to start with a bit set to '1'
         self.spidev.write(bytearray(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00') + pixels)
 
+    def filter_pixel(self, input_pixel, brightness=1):
+        output_pixel = bytearray(PIXEL_SIZE_SM16716)
+
+        input_pixel[0] = int(brightness * input_pixel[0])
+        input_pixel[1] = int(brightness * input_pixel[1])
+        input_pixel[2] = int(brightness * input_pixel[2])
+
+        # ON bit at the pixel front
+        # What is gamma correction for?
+        output_pixel[0] = b'\x01'
+        output_pixel[1] = input_pixel[0]
+        output_pixel[2] = input_pixel[1]
+        output_pixel[3] = input_pixel[2]
+
+        return output_pixel
+
 
 class WS2801(BaseStrip):
-    pass
+    def calculate_gamma(self):
+        gamma = []
+        for i in range(256):
+            gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
+        return gamma
 
 
 def correct_pixel_brightness(pixel):
@@ -527,44 +607,6 @@ def load_image():
     print "Loading..."
 
 
-# Apply Gamma Correction and RGB / GRB reordering
-# Optionally perform brightness adjustment
-def filter_pixel(input_pixel, brightness):
-    if args.chip_type == "SM16716":
-        output_pixel = bytearray(PIXEL_SIZE_SM16716)
-    else:
-        output_pixel = bytearray(PIXEL_SIZE)
-
-    input_pixel[0] = int(brightness * input_pixel[0])
-    input_pixel[1] = int(brightness * input_pixel[1])
-    input_pixel[2] = int(brightness * input_pixel[2])
-
-    if args.chip_type == "LPD8806":
-        # Convert RGB into GRB bytearray list.
-
-        # Some LPD8806 strips use this ordering:
-        # output_pixel[0] = gamma[input_pixel[1]]
-        # output_pixel[1] = gamma[input_pixel[0]]
-        # output_pixel[2] = gamma[input_pixel[2]]
-
-        # While some others use this one:
-        output_pixel[0] = gamma[input_pixel[2]]
-        output_pixel[1] = gamma[input_pixel[0]]
-        output_pixel[2] = gamma[input_pixel[1]]
-    elif args.chip_type == "SM16716":
-        # ON bit at the pixel front
-        # What is gamma correction for?
-        output_pixel[0] = b'\x01'
-        output_pixel[1] = input_pixel[0]
-        output_pixel[2] = input_pixel[1]
-        output_pixel[3] = input_pixel[2]
-    else:
-        output_pixel[0] = gamma[input_pixel[0]]
-        output_pixel[1] = gamma[input_pixel[1]]
-        output_pixel[2] = gamma[input_pixel[2]]
-    return output_pixel
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(add_help=True, version='1.0', prog='pixelpi.py')
     subparsers = parser.add_subparsers(help='sub command help?')
@@ -610,25 +652,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Calculate gamma correction table. This includes
-    # LPD8806-specific conversion (7-bit color w/high bit set).
-    if args.chip_type == "LPD8806":
-        for i in range(256):
-            gamma[i] = 0x80 | int(pow(float(i) / 255.0, 2.5) * 127.0 + 0.5)
-
-    if args.chip_type == "SM16716":
-        for i in range(256):
-            gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
-
-    if args.chip_type == "WS2801":
-        for i in range(256):
-            gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
-
-    #LPD6803 has 5 bit color, this seems to work but is not exact.
-    if args.chip_type == "LPD6803":
-        for i in range(256):
-            gamma[i] = int(pow(float(i) / 255.0, 2.0) * 255.0 + 0.5)
-
     # shim for old functions
     shim_kwargs = dict(
         num_leds=args.num_leds,
@@ -646,6 +669,8 @@ if __name__ == '__main__':
     # begin shim functions
     spidev = shim_strip.spidev
     write_stream = shim_strip.write_stream
+    gamma = shim_strip.gamma
+    filter_pixel = shim_strip.filter_pixel
 
     args.func()
 

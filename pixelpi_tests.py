@@ -1,7 +1,7 @@
 import unittest
 import mock
 
-from pixelpi import BaseStrip
+from pixelpi import BaseStrip, BLACK, WHITE, GRAY
 
 
 class MockSPI(object):
@@ -20,7 +20,8 @@ mock_file.start()
 
 class DummyStrip(BaseStrip):
     """Dummy implementation of `BaseStrip`"""
-    pass
+    def calculate_gamma(self):
+        return range(256)
 
 
 class Test(unittest.TestCase):
@@ -57,6 +58,14 @@ class BaseStripTest(unittest.TestCase):
     def test_write_stream_args(self):
         self.strip.write_stream('some data')
         self.assertEqual(self.strip.spidev.pixels, 'some data')
+
+    def test_gamma(self):
+        self.assertEqual(len(self.strip.gamma), 256)
+
+    def test_filter_pixel(self):
+        self.assertEqual(self.strip.filter_pixel(WHITE, 1), WHITE)
+        self.assertEqual(self.strip.filter_pixel(WHITE, 0.502), GRAY)  # XXX
+        self.assertEqual(self.strip.filter_pixel(WHITE, 0), BLACK)
 
 
 if __name__ == '__main__':
