@@ -486,58 +486,57 @@ def all_off(strip):
         if strip.chip_type == "SM16716":
             pixel_output[led * strip.pixel_size:] = SM16716BLACK
         else:
-            pixel_output[led * strip.pixel_size:] = filter_pixel(BLACK)
+            pixel_output[led * strip.pixel_size:] = strip.filter_pixel(BLACK)
     strip.write_stream(pixel_output)
     strip.spidev.flush()
 
 
-def all_on():
-    if args.chip_type == "SM16716":
-        pixel_output = bytearray(args.num_leds * PIXEL_SIZE_SM16716)
+def all_on(strip):
+    if strip.chip_type == "SM16716":
+        pixel_output = bytearray(strip.num_leds * strip.pixel_size)
     else:
-        pixel_output = bytearray(args.num_leds * PIXEL_SIZE + 3)
+        pixel_output = bytearray(strip.num_leds * strip.pixel_size + 3)
     print "Turning all LEDs On"
-    for led in range(args.num_leds):
-        if args.chip_type == "SM16716":
-            pixel_output[led * PIXEL_SIZE_SM16716:] = filter_pixel(WHITE, 1)
+    for led in range(strip.num_leds):
+        if strip.chip_type == "SM16716":
+            pixel_output[led * strip.pixel_size:] = strip.filter_pixel(WHITE)
         else:
-            pixel_output[led * PIXEL_SIZE:] = filter_pixel(WHITE, 1)
-    write_stream(pixel_output)
-    spidev.flush()
+            pixel_output[led * strip.pixel_size:] = strip.filter_pixel(WHITE)
+    strip.write_stream(pixel_output)
+    strip.spidev.flush()
 
 
-def fade():
-    if args.chip_type == "SM16716":
-        pixel_output = bytearray(args.num_leds * PIXEL_SIZE_SM16716)
-        current_color = bytearray(PIXEL_SIZE_SM16716)
+def fade(strip):
+    if strip.chip_type == "SM16716":
+        pixel_output = bytearray(strip.num_leds * strip.pixel_size)
     else:
-        pixel_output = bytearray(args.num_leds * PIXEL_SIZE + 3)
-        current_color = bytearray(PIXEL_SIZE)
+        pixel_output = bytearray(strip.num_leds * strip.pixel_size + 3)
+    current_color = bytearray(strip.pixel_size)
     print "Displaying..."
 
     while True:
         for color in RAINBOW:
             for brightness in [x * 0.01 for x in range(0, 100)]:
-                current_color[:] = filter_pixel(color[:], brightness)
-                if args.chip_type == "SM16716":
-                    for pixel_offset in [(x * 4) for x in range(args.num_leds)]:
+                current_color = filter_pixel(color, brightness)
+                if strip.chip_type == "SM16716":
+                    for pixel_offset in [(x * 4) for x in range(strip.num_leds)]:
                         pixel_output[pixel_offset:] = current_color[:]
                 else:
-                    for pixel_offset in [(x * 3) for x in range(args.num_leds)]:
+                    for pixel_offset in [(x * 3) for x in range(strip.num_leds)]:
                         pixel_output[pixel_offset:] = current_color[:]
-                write_stream(pixel_output)
-                spidev.flush()
+                strip.write_stream(pixel_output)
+                strip.spidev.flush()
                 time.sleep((args.refresh_rate) / 1000.0)
             for brightness in [x * 0.01 for x in range(100, 0, -1)]:
                 current_color[:] = filter_pixel(color[:], brightness)
-                if args.chip_type == "SM16716":
-                    for pixel_offset in [(x * 4) for x in range(args.num_leds)]:
+                if strip.chip_type == "SM16716":
+                    for pixel_offset in [(x * 4) for x in range(strip.num_leds)]:
                         pixel_output[pixel_offset:] = current_color[:]
                 else:
-                    for pixel_offset in [(x * 3) for x in range(args.num_leds)]:
+                    for pixel_offset in [(x * 3) for x in range(strip.num_leds)]:
                         pixel_output[pixel_offset:] = current_color[:]
-                write_stream(pixel_output)
-                spidev.flush()
+                strip.write_stream(pixel_output)
+                strip.spidev.flush()
                 time.sleep((args.refresh_rate) / 1000.0)
 
 
