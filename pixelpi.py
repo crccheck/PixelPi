@@ -544,69 +544,71 @@ def filter_pixel(input_pixel, brightness):
     return output_pixel
 
 
-parser = argparse.ArgumentParser(add_help=True, version='1.0', prog='pixelpi.py')
-subparsers = parser.add_subparsers(help='sub command help?')
-common_parser = argparse.ArgumentParser(add_help=False)
-common_parser.add_argument('--chip', action='store', dest='chip_type', default='WS2801', choices=['WS2801', 'LPD8806', 'LPD6803', 'SM16716'], help='Specify chip type LPD6803, LPD8806, WS2801 or SM16716')
-common_parser.add_argument('--verbose', action='store_true', dest='verbose', default=True, help='enable verbose mode')
-common_parser.add_argument('--spi_dev', action='store', dest='spi_dev_name', required=False, default='/dev/spidev0.0', help='Set the SPI device descriptor')
-common_parser.add_argument('--refresh_rate', action='store', dest='refresh_rate', required=False, default=500, type=int, help='Set the refresh rate in ms (default 500ms)')
-parser_strip = subparsers.add_parser('strip', parents=[common_parser], help='Stip Mode - Display an image using POV and a LED strip')
-parser_strip.set_defaults(func=strip)
-parser_strip.add_argument('--filename', action='store', dest='filename', required=False, help='Specify the image file eg: hello.png')
-parser_strip.add_argument('--array_height', action='store', dest='array_height', required=True, type=int, default='7', help='Set the Y dimension of your pixel array (height)')
-parser_array = subparsers.add_parser('array', parents=[common_parser], help='Array Mode - Display an image on a pixel array')
-parser_array.set_defaults(func=array)
-parser_array.add_argument('--filename', action='store', dest='filename', required=False, help='Specify the image file eg: hello.png')
-parser_array.add_argument('--array_width', action='store', dest='array_width', required=True, type=int, default='7', help='Set the X dimension of your pixel array (width)')
-parser_array.add_argument('--array_height', action='store', dest='array_height', required=True, type=int, default='7', help='Set the Y dimension of your pixel array (height)')
-parser_pixelinvaders = subparsers.add_parser('pixelinvaders', parents=[common_parser], help='Pixelinvaders Mode - setup pixelpi as a Pixelinvaders slave')
-parser_pixelinvaders.set_defaults(func=pixelinvaders)
-parser_pixelinvaders.add_argument('--udp-ip', action='store', dest='UDP_IP', required=True, help='Used for PixelInvaders mode, listening address')
-parser_pixelinvaders.add_argument('--udp-port', action='store', dest='UDP_PORT', required=True, default=6803, type=int, help='Used for PixelInvaders mode, listening port')
-parser_fade = subparsers.add_parser('fade', parents=[common_parser], help='Fade Mode - Fade colors on all LEDs')
-parser_fade.set_defaults(func=fade)
-parser_fade.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
-parser_chase = subparsers.add_parser('chase', parents=[common_parser], help='Chase Mode - Chase display test mode')
-parser_chase.set_defaults(func=chase)
-parser_chase.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
-parser_pan = subparsers.add_parser('pan', parents=[common_parser], help='Pan Mode - Pan an image across an array')
-parser_pan.set_defaults(func=pan)
-parser_pan.add_argument('--filename', action='store', dest='filename', required=False, help='Specify the image file eg: hello.png')
-parser_pan.add_argument('--array_width', action='store', dest='array_width', required=True, type=int, default='7', help='Set the X dimension of your pixel array (width)')
-parser_pan.add_argument('--array_height', action='store', dest='array_height', required=True, type=int, default='7', help='Set the Y dimension of your pixel array (height)')
-parser_all_on = subparsers.add_parser('all_on', parents=[common_parser], help='All On Mode - Turn all LEDs On')
-parser_all_on.set_defaults(func=all_on)
-parser_all_on.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
-parser_all_off = subparsers.add_parser('all_off', parents=[common_parser], help='All Off Mode - Turn all LEDs Off')
-parser_all_off.set_defaults(func=all_off)
-parser_all_off.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
-if CWIID_ENABLED:
-    parser_wiimote = subparsers.add_parser('wiimote', parents=[common_parser], help='Wiimote Mode - move and LED witht he Wiimote')
-    parser_wiimote.set_defaults(func=wiimote)
-    parser_wiimote.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(add_help=True, version='1.0', prog='pixelpi.py')
+    subparsers = parser.add_subparsers(help='sub command help?')
+    common_parser = argparse.ArgumentParser(add_help=False)
+    common_parser.add_argument('--chip', action='store', dest='chip_type', default='WS2801', choices=['WS2801', 'LPD8806', 'LPD6803', 'SM16716'], help='Specify chip type LPD6803, LPD8806, WS2801 or SM16716')
+    common_parser.add_argument('--verbose', action='store_true', dest='verbose', default=True, help='enable verbose mode')
+    common_parser.add_argument('--spi_dev', action='store', dest='spi_dev_name', required=False, default='/dev/spidev0.0', help='Set the SPI device descriptor')
+    common_parser.add_argument('--refresh_rate', action='store', dest='refresh_rate', required=False, default=500, type=int, help='Set the refresh rate in ms (default 500ms)')
+    parser_strip = subparsers.add_parser('strip', parents=[common_parser], help='Stip Mode - Display an image using POV and a LED strip')
+    parser_strip.set_defaults(func=strip)
+    parser_strip.add_argument('--filename', action='store', dest='filename', required=False, help='Specify the image file eg: hello.png')
+    parser_strip.add_argument('--array_height', action='store', dest='array_height', required=True, type=int, default='7', help='Set the Y dimension of your pixel array (height)')
+    parser_array = subparsers.add_parser('array', parents=[common_parser], help='Array Mode - Display an image on a pixel array')
+    parser_array.set_defaults(func=array)
+    parser_array.add_argument('--filename', action='store', dest='filename', required=False, help='Specify the image file eg: hello.png')
+    parser_array.add_argument('--array_width', action='store', dest='array_width', required=True, type=int, default='7', help='Set the X dimension of your pixel array (width)')
+    parser_array.add_argument('--array_height', action='store', dest='array_height', required=True, type=int, default='7', help='Set the Y dimension of your pixel array (height)')
+    parser_pixelinvaders = subparsers.add_parser('pixelinvaders', parents=[common_parser], help='Pixelinvaders Mode - setup pixelpi as a Pixelinvaders slave')
+    parser_pixelinvaders.set_defaults(func=pixelinvaders)
+    parser_pixelinvaders.add_argument('--udp-ip', action='store', dest='UDP_IP', required=True, help='Used for PixelInvaders mode, listening address')
+    parser_pixelinvaders.add_argument('--udp-port', action='store', dest='UDP_PORT', required=True, default=6803, type=int, help='Used for PixelInvaders mode, listening port')
+    parser_fade = subparsers.add_parser('fade', parents=[common_parser], help='Fade Mode - Fade colors on all LEDs')
+    parser_fade.set_defaults(func=fade)
+    parser_fade.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
+    parser_chase = subparsers.add_parser('chase', parents=[common_parser], help='Chase Mode - Chase display test mode')
+    parser_chase.set_defaults(func=chase)
+    parser_chase.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
+    parser_pan = subparsers.add_parser('pan', parents=[common_parser], help='Pan Mode - Pan an image across an array')
+    parser_pan.set_defaults(func=pan)
+    parser_pan.add_argument('--filename', action='store', dest='filename', required=False, help='Specify the image file eg: hello.png')
+    parser_pan.add_argument('--array_width', action='store', dest='array_width', required=True, type=int, default='7', help='Set the X dimension of your pixel array (width)')
+    parser_pan.add_argument('--array_height', action='store', dest='array_height', required=True, type=int, default='7', help='Set the Y dimension of your pixel array (height)')
+    parser_all_on = subparsers.add_parser('all_on', parents=[common_parser], help='All On Mode - Turn all LEDs On')
+    parser_all_on.set_defaults(func=all_on)
+    parser_all_on.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
+    parser_all_off = subparsers.add_parser('all_off', parents=[common_parser], help='All Off Mode - Turn all LEDs Off')
+    parser_all_off.set_defaults(func=all_off)
+    parser_all_off.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
+    if CWIID_ENABLED:
+        parser_wiimote = subparsers.add_parser('wiimote', parents=[common_parser], help='Wiimote Mode - move and LED witht he Wiimote')
+        parser_wiimote.set_defaults(func=wiimote)
+        parser_wiimote.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
 
-args = parser.parse_args()
-spidev = file(args.spi_dev_name, "wb")
-# Calculate gamma correction table. This includes
-# LPD8806-specific conversion (7-bit color w/high bit set).
-if args.chip_type == "LPD8806":
-    for i in range(256):
-        gamma[i] = 0x80 | int(pow(float(i) / 255.0, 2.5) * 127.0 + 0.5)
+    args = parser.parse_args()
+    spidev = file(args.spi_dev_name, "wb")
 
-if args.chip_type == "SM16716":
-    for i in range(256):
-        gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
+    # Calculate gamma correction table. This includes
+    # LPD8806-specific conversion (7-bit color w/high bit set).
+    if args.chip_type == "LPD8806":
+        for i in range(256):
+            gamma[i] = 0x80 | int(pow(float(i) / 255.0, 2.5) * 127.0 + 0.5)
 
-if args.chip_type == "WS2801":
-    for i in range(256):
-        gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
+    if args.chip_type == "SM16716":
+        for i in range(256):
+            gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
 
-#LPD6803 has 5 bit color, this seems to work but is not exact.
-if args.chip_type == "LPD6803":
-    for i in range(256):
-        gamma[i] = int(pow(float(i) / 255.0, 2.0) * 255.0 + 0.5)
-args.func()
+    if args.chip_type == "WS2801":
+        for i in range(256):
+            gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
+
+    #LPD6803 has 5 bit color, this seems to work but is not exact.
+    if args.chip_type == "LPD6803":
+        for i in range(256):
+            gamma[i] = int(pow(float(i) / 255.0, 2.0) * 255.0 + 0.5)
+    args.func()
 
 
 #print "Chip Type             = %s" % args.chip_type
