@@ -581,35 +581,35 @@ if CWIID_ENABLED:
         time.sleep(wii_move_timeout)
 
 
-def chase():
+def chase(strip):
     if args.chip_type == "SM16716":
-        pixel_output = bytearray(args.num_leds * PIXEL_SIZE_SM16716)
+        pixel_output = bytearray(strip.num_leds * strip.pixel_size)
     else:
-        pixel_output = bytearray(args.num_leds * PIXEL_SIZE + 3)
+        pixel_output = bytearray(strip.num_leds * strip.pixel_size + 3)
     print "Displaying..."
     current_color = bytearray(PIXEL_SIZE)
     pixel_index = 0
     while True:
         for current_color[:] in RAINBOW:
             for pixel_index in range(args.num_leds):
-                if args.chip_type == "SM16716":
-                    pixel_output[((pixel_index - 2) * PIXEL_SIZE_SM16716):] = filter_pixel(current_color[:], 0.2)
-                    pixel_output[((pixel_index - 1) * PIXEL_SIZE_SM16716):] = filter_pixel(current_color[:], 0.4)
-                    pixel_output[((pixel_index) * PIXEL_SIZE_SM16716):] = filter_pixel(current_color[:], 1)
-                    pixel_output += SM16716BLACK * ((args.num_leds - pixel_index))
+                if strip.chip_type == "SM16716":
+                    pixel_output[((pixel_index - 2) * strip.pixel_size):] = filter_pixel(current_color[:], 0.2)
+                    pixel_output[((pixel_index - 1) * strip.pixel_size):] = filter_pixel(current_color[:], 0.4)
+                    pixel_output[((pixel_index) * strip.pixel_size):] = filter_pixel(current_color[:], 1)
+                    pixel_output += SM16716BLACK * ((strip.num_leds - pixel_index))
                 else:
-                    pixel_output[((pixel_index - 2) * PIXEL_SIZE):] = filter_pixel(current_color[:], 0.2)
-                    pixel_output[((pixel_index - 1) * PIXEL_SIZE):] = filter_pixel(current_color[:], 0.4)
-                    pixel_output[((pixel_index) * PIXEL_SIZE):] = filter_pixel(current_color[:], 1)
-                    pixel_output += '\x00' * ((args.num_leds - 1 - pixel_index) * PIXEL_SIZE)
+                    pixel_output[((pixel_index - 2) * strip.pixel_size):] = filter_pixel(current_color[:], 0.2)
+                    pixel_output[((pixel_index - 1) * strip.pixel_size):] = filter_pixel(current_color[:], 0.4)
+                    pixel_output[((pixel_index) * strip.pixel_size):] = filter_pixel(current_color[:], 1)
+                    pixel_output += '\x00' * ((strip.num_leds - 1 - pixel_index) * strip.pixel_size)
 
-                write_stream(pixel_output)
-                spidev.flush()
+                strip.write_stream(pixel_output)
+                strip.spidev.flush()
                 time.sleep((args.refresh_rate) / 1000.0)
-                if args.chip_type == "SM16716":
-                    pixel_output[((pixel_index - 2) * PIXEL_SIZE_SM16716):] = SM16716BLACK
+                if strip.chip_type == "SM16716":
+                    pixel_output[((pixel_index - 2) * strip.pixel_size):] = SM16716BLACK
                 else:
-                    pixel_output[((pixel_index - 2) * PIXEL_SIZE):] = filter_pixel(current_color[:], 0)
+                    pixel_output[((pixel_index - 2) * strip.pixel_size):] = filter_pixel(current_color[:], 0)
 
 
 gamma = bytearray(256)
