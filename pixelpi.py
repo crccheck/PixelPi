@@ -1,4 +1,5 @@
 import argparse
+import binascii
 import csv
 import socket
 import time
@@ -185,6 +186,8 @@ class BaseStrip(object):
         self.gamma = self.calculate_gamma()
 
     def write_stream(self, pixels):
+        if args.verbose:  # FIXME don't ref args here
+            print binascii.hexlify(pixels)
         self.spidev.write(pixels)
 
     def filter_pixel(self, input_pixel, brightness=1):
