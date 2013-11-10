@@ -476,19 +476,16 @@ def pan():
         time.sleep((args.refresh_rate) / 1000.0)
 
 
-def all_off():
-    if args.chip_type == "SM16716":
-        pixel_output = bytearray(args.num_leds * PIXEL_SIZE_SM16716)
-    else:
-        pixel_output = bytearray(args.num_leds * PIXEL_SIZE + 3)
+def all_off(strip):
     print "Turning all LEDs Off"
-    for led in range(args.num_leds):
-        if args.chip_type == "SM16716":
-            pixel_output[led * PIXEL_SIZE_SM16716:] = SM16716BLACK
+    pixel_output = bytearray(strip.num_leds * shim_strip.pixel_size)
+    for led in range(strip.num_leds):
+        if strip.chip_type == "SM16716":
+            pixel_output[led * strip.pixel_size:] = SM16716BLACK
         else:
-            pixel_output[led * PIXEL_SIZE:] = filter_pixel(BLACK, 1)
-    write_stream(pixel_output)
-    spidev.flush()
+            pixel_output[led * strip.pixel_size:] = filter_pixel(BLACK)
+    strip.write_stream(pixel_output)
+    strip.spidev.flush()
 
 
 def all_on():
@@ -688,7 +685,7 @@ if __name__ == '__main__':
     gamma = shim_strip.gamma
     filter_pixel = shim_strip.filter_pixel
 
-    args.func()
+    args.func(shim_strip)
 
 
 #print "Chip Type             = %s" % args.chip_type
