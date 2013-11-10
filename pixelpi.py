@@ -179,11 +179,14 @@ class BaseStrip(object):
         if 'refresh_rate' in kwargs:
             self.refresh_rate = kwargs['refresh_rate']
 
+    def write_stream(self, pixels):
+        self.spidev.write(pixels)
 
-def write_stream(pixels):
-    if args.chip_type == "LPD6803":
+
+class LPD6803(BaseStrip):
+    def write_stream(self, pixels):
         pixel_out_bytes = bytearray(2)
-        spidev.write(bytearray(b'\x00\x00'))
+        self.spidev.write(bytearray(b'\x00\x00'))
         pixel_count = len(pixels) / PIXEL_SIZE
         for pixel_index in range(pixel_count):
 
@@ -196,19 +199,25 @@ def write_stream(pixels):
 
             pixel_out_bytes[0] = (pixel_out & 0xFF00) >> 8
             pixel_out_bytes[1] = (pixel_out & 0x00FF) >> 0
-            spidev.write(pixel_out_bytes)
-    elif args.chip_type == "LPD8806":
-        spidev.write(pixels)
-        spidev.write(bytearray(b'\x00\x00\x00'))  # zero fill the last to prevent stray colors at the end
-        spidev.write(bytearray(b'\x00'))
-    elif args.chip_type == "SM16716":
+            self.spidev.write(pixel_out_bytes)
+
+
+class LPD8806(BaseStrip):
+    def write_stream(self, pixels):
+        self.spidev.write(pixels)
+        self.spidev.write(bytearray(b'\x00\x00\x00'))  # zero fill the last to prevent stray colors at the end
+        self.spidev.write(bytearray(b'\x00'))
+
+
+class SM16716(BaseStrip):
+    def write_stream(self, pixels):
         #Each frame for SM17616 starts with 50bits set to '0'
         #Also every pixel needs to start with a bit set to '1'
-        spidev.write(bytearray(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00') + pixels)
-    else:
-        spidev.write(pixels)
+        self.spidev.write(bytearray(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00') + pixels)
 
-    return
+
+class WS2801(BaseStrip):
+    pass
 
 
 def correct_pixel_brightness(pixel):
@@ -600,7 +609,6 @@ if __name__ == '__main__':
         parser_wiimote.add_argument('--num_leds', action='store', dest='num_leds', required=True, default=50, type=int,  help='Set the  number of LEDs in the string')
 
     args = parser.parse_args()
-    spidev = file(args.spi_dev_name, "wb")
 
     # Calculate gamma correction table. This includes
     # LPD8806-specific conversion (7-bit color w/high bit set).
@@ -620,6 +628,25 @@ if __name__ == '__main__':
     if args.chip_type == "LPD6803":
         for i in range(256):
             gamma[i] = int(pow(float(i) / 255.0, 2.0) * 255.0 + 0.5)
+
+    # shim for old functions
+    shim_kwargs = dict(
+        num_leds=args.num_leds,
+        refresh_rate=args.refresh_rate,
+        spi_dev_name=args.spi_dev_name,
+    )
+    if args.chip_type == "LPD8806":
+        shim_strip = LPD8806(**shim_kwargs)
+    if args.chip_type == "SM16716":
+        shim_strip = SM16716(**shim_kwargs)
+    if args.chip_type == "WS2801":
+        shim_strip = WS2801(**shim_kwargs)
+    if args.chip_type == "LPD6803":
+        shim_strip = LPD6803(**shim_kwargs)
+    # begin shim functions
+    spidev = shim_strip.spidev
+    write_stream = shim_strip.write_stream
+
     args.func()
 
 
