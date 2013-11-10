@@ -24,34 +24,23 @@ class DummyStrip(BaseStrip):
         return range(256)
 
 
-class Test(unittest.TestCase):
+class BaseStripTest(unittest.TestCase):
     def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
+        self.strip = DummyStrip()
 
     def test_num_leds_can_be_set(self):
         strip = DummyStrip(num_leds=99)
         self.assertEqual(strip.num_leds, 99)
 
-
-class BaseStripTest(unittest.TestCase):
-    def setUp(self):
-        self.strip = DummyStrip(num_leds=3)
-
-    def test_refresh_rate_default(self):
-        self.assertEqual(self.strip.refresh_rate, 500)  # assertTrue?
-
     def test_refresh_rate_can_be_set(self):
-        strip = DummyStrip(num_leds=1, refresh_rate=501)
+        strip = DummyStrip(refresh_rate=501)
         self.assertEqual(strip.refresh_rate, 501)
 
     def test_spi_dev_name_default(self):
         self.assertEqual(self.strip.spidev.name, '/dev/spidev0.0')
 
     def test_spi_dev_name_can_be_set(self):
-        strip = DummyStrip(num_leds=1, spi_dev_name='foobar')
+        strip = DummyStrip(spi_dev_name='foobar')
         # TODO
         self.assertEqual(strip.spidev.name, 'foobar')
 

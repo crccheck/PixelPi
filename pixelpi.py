@@ -169,16 +169,16 @@ RAINBOW = [AQUA, AQUAMARINE, AZURE, BEIGE, BISQUE, BLANCHEDALMOND, BLUE, BLUEVIO
 
 
 class BaseStrip(object):
-    num_leds = 0
-    refresh_rate = 500  # milliseconds
-    spidev = None
+    num_leds = None
+    refresh_rate = None  # milliseconds
+    spidev = None  # output file
     gamma = None  # gamma correction table
 
-    def __init__(self, num_leds, spi_dev_name='/dev/spidev0.0', **kwargs):
+    def __init__(self, num_leds=0, refresh_rate=500,
+            spi_dev_name='/dev/spidev0.0', **kwargs):
         self.num_leds = num_leds
         self.spidev = file(spi_dev_name, 'wb')
-        if 'refresh_rate' in kwargs:
-            self.refresh_rate = kwargs['refresh_rate']
+        self.refresh_rate = refresh_rate
         self.gamma = self.calculate_gamma()
 
     def write_stream(self, pixels):
