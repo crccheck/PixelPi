@@ -169,6 +169,7 @@ RAINBOW = [AQUA, AQUAMARINE, AZURE, BEIGE, BISQUE, BLANCHEDALMOND, BLUE, BLUEVIO
 
 
 class BaseStrip(object):
+    chip_type = None  # override in subclass
     num_leds = None
     refresh_rate = None  # milliseconds
     spidev = None  # output file
@@ -203,6 +204,8 @@ class BaseStrip(object):
 
 
 class LPD6803(BaseStrip):
+    chip_type = 'LPD6803'
+
     def calculate_gamma(self):
         #LPD6803 has 5 bit color, this seems to work but is not exact.
         gamma = []
@@ -229,6 +232,8 @@ class LPD6803(BaseStrip):
 
 
 class LPD8806(BaseStrip):
+    chip_type = 'LPD8806'
+
     def calculate_gamma(self):
         """LPD8806-specific conversion (7-bit color w/high bit set)."""
         gamma = []
@@ -263,6 +268,8 @@ class LPD8806(BaseStrip):
 
 
 class SM16716(BaseStrip):
+    chip_type = 'SM16716'
+
     def calculate_gamma(self):
         """LPD8806-specific conversion (7-bit color w/high bit set)."""
         gamma = []
@@ -293,6 +300,8 @@ class SM16716(BaseStrip):
 
 
 class WS2801(BaseStrip):
+    chip_type = 'WS2801'
+
     def calculate_gamma(self):
         gamma = []
         for i in range(256):

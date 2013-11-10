@@ -20,6 +20,8 @@ mock_file.start()
 
 class DummyStrip(BaseStrip):
     """Dummy implementation of `BaseStrip`"""
+    chip_type = 'DUMMY9000'
+
     def calculate_gamma(self):
         return range(256)
 
@@ -27,6 +29,11 @@ class DummyStrip(BaseStrip):
 class BaseStripTest(unittest.TestCase):
     def setUp(self):
         self.strip = DummyStrip()
+
+    def test_chip_type_attribute_comes_from_class(self):
+        self.assertEqual(self.strip.chip_type, 'DUMMY9000')
+        strip = DummyStrip(chip_type='LOL1337')
+        self.assertEqual(strip.chip_type, 'DUMMY9000')
 
     def test_num_leds_can_be_set(self):
         strip = DummyStrip(num_leds=99)
