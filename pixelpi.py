@@ -168,6 +168,18 @@ RAINBOW = [AQUA, AQUAMARINE, AZURE, BEIGE, BISQUE, BLANCHEDALMOND, BLUE, BLUEVIO
 #RAINBOW = [RED, GREEN, BLUE, YELLOW, VIOLET, ORANGE, GRAY, OLIVE, BROWN]
 
 
+class BaseStrip(object):
+    num_leds = 0
+    refresh_rate = 500  # milliseconds
+    spidev = None
+
+    def __init__(self, num_leds, spi_dev_name='/dev/spidev0.0', **kwargs):
+        self.num_leds = num_leds
+        self.spidev = file(spi_dev_name, 'wb')
+        if 'refresh_rate' in kwargs:
+            self.refresh_rate = kwargs['refresh_rate']
+
+
 def write_stream(pixels):
     if args.chip_type == "LPD6803":
         pixel_out_bytes = bytearray(2)
