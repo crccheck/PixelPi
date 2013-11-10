@@ -175,7 +175,7 @@ class BaseStrip(object):
     num_leds = None
     refresh_rate = None  # milliseconds
     spidev = None  # output file
-    gamma = None  # gamma correction table
+    gamma = None  # gamma correction lookup table
 
     def __init__(self, num_leds=0, refresh_rate=500,
             spi_dev_name='/dev/spidev0.0', **kwargs):
@@ -210,8 +210,8 @@ class LPD6803(BaseStrip):
 
     def calculate_gamma(self):
         #LPD6803 has 5 bit color, this seems to work but is not exact.
-        gamma = []
-        for i in range(256):
+        gamma = range(256)
+        for i in gamma:
             gamma[i] = int(pow(float(i) / 255.0, 2.0) * 255.0 + 0.5)
         return gamma
 
@@ -241,8 +241,8 @@ class LPD8806(BaseStrip):
 
     def calculate_gamma(self):
         """LPD8806-specific conversion (7-bit color w/high bit set)."""
-        gamma = []
-        for i in range(256):
+        gamma = range(256)
+        for i in gamma:
             gamma[i] = 0x80 | int(pow(float(i) / 255.0, 2.5) * 127.0 + 0.5)
         return gamma
 
@@ -278,8 +278,8 @@ class SM16716(BaseStrip):
 
     def calculate_gamma(self):
         """LPD8806-specific conversion (7-bit color w/high bit set)."""
-        gamma = []
-        for i in range(256):
+        gamma = range(256)
+        for i in gamma:
             gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
         return gamma
 
@@ -310,8 +310,8 @@ class WS2801(BaseStrip):
     chip_type = 'WS2801'
 
     def calculate_gamma(self):
-        gamma = []
-        for i in range(256):
+        gamma = range(256)
+        for i in gamma:
             gamma[i] = int(pow(float(i) / 255.0, 2.5) * 255.0)
         return gamma
 
