@@ -170,6 +170,8 @@ RAINBOW = [AQUA, AQUAMARINE, AZURE, BEIGE, BISQUE, BLANCHEDALMOND, BLUE, BLUEVIO
 
 class BaseStrip(object):
     chip_type = None  # override in subclass
+    pixel_size = 3  # bytes
+
     num_leds = None
     refresh_rate = None  # milliseconds
     spidev = None  # output file
@@ -191,7 +193,7 @@ class BaseStrip(object):
 
         Optionally perform brightness adjustment (0 - 1)
         """
-        output_pixel = bytearray(PIXEL_SIZE)
+        output_pixel = bytearray(self.pixel_size)
 
         input_pixel[0] = int(brightness * input_pixel[0])
         input_pixel[1] = int(brightness * input_pixel[1])
@@ -216,10 +218,13 @@ class LPD6803(BaseStrip):
     def write_stream(self, pixels):
         pixel_out_bytes = bytearray(2)
         self.spidev.write(bytearray(b'\x00\x00'))
-        pixel_count = len(pixels) / PIXEL_SIZE
+        pixel_count = len(pixels) / self.pixel_size
         for pixel_index in range(pixel_count):
-
-            pixel_in = bytearray(pixels[(pixel_index * PIXEL_SIZE):((pixel_index * PIXEL_SIZE) + PIXEL_SIZE)])
+            pixel_in = bytearray(
+                    pixels[
+                        (pixel_index * self.pixel_size):
+                        ((pixel_index * self.pixel_size) + self.pixel_size)
+                    ])
 
             pixel_out = 0b1000000000000000  # bit 16 must be ON
             pixel_out |= (pixel_in[0] & 0x00F8) << 7  # RED is bits 11-15
@@ -247,7 +252,7 @@ class LPD8806(BaseStrip):
         self.spidev.write(bytearray(b'\x00'))
 
     def filter_pixel(self, input_pixel, brightness=1):
-        output_pixel = bytearray(PIXEL_SIZE)
+        output_pixel = bytearray(self.pixel_size)
 
         input_pixel[0] = int(brightness * input_pixel[0])
         input_pixel[1] = int(brightness * input_pixel[1])
@@ -269,6 +274,7 @@ class LPD8806(BaseStrip):
 
 class SM16716(BaseStrip):
     chip_type = 'SM16716'
+    pixel_size = 4
 
     def calculate_gamma(self):
         """LPD8806-specific conversion (7-bit color w/high bit set)."""
@@ -283,7 +289,8 @@ class SM16716(BaseStrip):
         self.spidev.write(bytearray(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00') + pixels)
 
     def filter_pixel(self, input_pixel, brightness=1):
-        output_pixel = bytearray(PIXEL_SIZE_SM16716)
+        # WISHLIST refactor to use `super()` and prepend b'\x01'
+        output_pixel = bytearray(self.pixel_size)
 
         input_pixel[0] = int(brightness * input_pixel[0])
         input_pixel[1] = int(brightness * input_pixel[1])

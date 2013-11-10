@@ -35,6 +35,9 @@ class BaseStripTest(unittest.TestCase):
         strip = DummyStrip(chip_type='LOL1337')
         self.assertEqual(strip.chip_type, 'DUMMY9000')
 
+    def test_pixel_size_attribute(self):
+        self.assertEqual(self.strip.pixel_size, 3)
+
     def test_num_leds_can_be_set(self):
         strip = DummyStrip(num_leds=99)
         self.assertEqual(strip.num_leds, 99)
